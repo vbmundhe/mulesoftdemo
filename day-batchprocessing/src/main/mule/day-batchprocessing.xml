@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0ba853e4-9f4b-41d0-a190-9b60882f3a8c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="86ccf1e3-11f8-4ad9-ba28-ba3c71fe1f84" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="tiger" database="muletraining" />
+	</db:config>
+	<flow name="day-batchprocessingFlow" doc:id="19a5189d-e8f2-4aae-adfd-33b793a386a1" >
+		<http:listener doc:name="Listener" doc:id="bc10d49b-b28c-4d36-8bdd-34c761f6d142" config-ref="HTTP_Listener_config" path="/batchjobprocessing">
+			<http:response >
+				<http:body ><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></http:body>
+			</http:response>
+		</http:listener>
+		<db:select doc:name="Select" doc:id="4dbd7995-1c8c-4dea-be0e-e8ad39e1ff1f" config-ref="Database_Config">
+			<db:sql ><![CDATA[ select * from customer;]]></db:sql>
+		</db:select>
+		<batch:job jobName="day-batchprocessingBatch_Job" doc:id="3367b244-310e-4809-a484-6c94a19c4f27" blockSize="5" maxFailedRecords="-1">
+			<batch:process-records >
+				<batch:step name="Batch_Step" doc:id="398d3d63-bfc9-43ac-bd9f-fadccc7b7d96" acceptExpression="payload.phone != null">
+					<logger level="INFO" doc:name="Logger" doc:id="eaa4219c-8974-4b51-b396-cf141d2783dc" message="#[payload]"/>
+					<batch:aggregator doc:name="Batch Aggregator" doc:id="d8fb5100-67c4-4bf1-ae17-e545fbeb8cf1" size="2">
+						<file:write doc:name="Write" doc:id="702aec37-5c3f-44e7-a6f7-2e5f6d585a7f" path="E:\Study\mulesoft\Acc-Mule-training\resources\resources\Newfolder\customer.txt" mode="APPEND">
+							<file:content ><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></file:content>
+						</file:write>
+						<logger level="INFO" doc:name="Copy_of_Logger" doc:id="22aab91f-0733-4040-a152-83a077afc0cf" message='#["\n \n ============= processing of batch  is completed ============="]' />
+					</batch:aggregator>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="Logger" doc:id="417a7a07-d30b-4fd5-8492-258376657e96" message='#["\n \n ********************************************= processing of batch  is completed *******************************************"]'/>
+				<file:write doc:name="Write" doc:id="e29418b7-8d3c-40e1-ac7b-d177451a61ad" path="E:\Study\mulesoft\Acc-Mule-training\resources\resources\opOfBatchAggregationOperationForCustomersOnComplete.txt" mode="APPEND">
+					<file:content ><![CDATA[#[%dw 2.0
+output application/json
+---
+payload]]]></file:content>
+				</file:write>
+				<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="f9c4f304-fcb4-4ab7-bdf6-5ed442c0422e" />
+			</batch:on-complete>
+		</batch:job>
+	</flow>
+</mule>

@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:wsc="http://www.mulesoft.org/schema/mule/wsc"
+	xmlns:sockets="http://www.mulesoft.org/schema/mule/sockets"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sockets http://www.mulesoft.org/schema/mule/sockets/current/mule-sockets.xsd
+http://www.mulesoft.org/schema/mule/wsc http://www.mulesoft.org/schema/mule/wsc/current/mule-wsc.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config"
+		doc:name="HTTP Listener config"
+		doc:id="725947d1-88b3-48a1-95ce-02df70d00745">
+		<http:listener-connection host="localhost"
+			port="8081" />
+	</http:listener-config>
+	<wsc:config name="Web_Service_Consumer_Config"
+		doc:name="Web Service Consumer Config"
+		doc:id="455d7aa3-34f2-4e43-b932-a1bb3b9f1e19">
+		<wsc:connection
+			wsdlLocation="http://www.dneonline.com/calculator.asmx?wsdl"
+			service="Calculator" port="CalculatorSoap"
+			address="http://www.dneonline.com/calculator.asmx">
+			<wsc:web-service-security
+				actor="http://schemas.xmlsoap.org/soap/actor/next" />
+		</wsc:connection>
+	</wsc:config>
+	<flow name="soapWithScatterGatter" doc:id="fa7300a2-a598-41c8-89ce-8bf9b074c587" >
+		<http:listener doc:name="Listener" doc:id="cdb7c1ec-124a-4738-b424-1c5fef1dea38" config-ref="HTTP_Listener_config" path="/flatter"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="4e16b6b7-93bc-4b4b-a63d-fed8f19463c4" >
+			<route >
+				<ee:transform doc:name="Copy_of_Transform Message" doc:id="106e36e2-6b56-401a-9c1c-6d1c398afd4a">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: (attributes.queryParams.num1 default 0) as Number,
+		ns0#intB: (attributes.queryParams.num2 default 0) as Number
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<wsc:consume operation="Add" doc:name="Copy_of_Consume" doc:id="b45308da-a84c-4484-8b6c-800aed2b41b2" config-ref="Web_Service_Consumer_Config" />
+				<ee:transform doc:name="Copy_of_Transform Message" doc:id="a4945913-6d10-4cf7-a017-c5dfeb3bdf3d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"result":{"AddResult":payload.body.ns0#AddResponse.ns0#AddResult} 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Copy_of_Logger" doc:id="31c5354a-3036-4b21-8545-d09ef2bc8637" message="#[payload]" />
+			</route>
+			<route >
+				<ee:transform doc:name="Copy_of_Copy_of_Transform Message" doc:id="965f4b20-fe2c-4a1c-8e38-5d4c9a3ae698">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Subtract: {
+		ns0#intA: (attributes.queryParams.num1 default 0) as Number,
+		ns0#intB: (attributes.queryParams.num2 default 0) as Number
+	}
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<wsc:consume operation="Subtract" doc:name="Copy_of_Copy_of_Consume" doc:id="fa84e267-2bc2-4cd3-a797-17cb1a351fdd" config-ref="Web_Service_Consumer_Config" />
+				<ee:transform doc:name="Copy_of_Copy_of_Transform Message" doc:id="616b0510-9afd-45d4-bde8-411adc7c9a35">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"result":{"SubtractResponse":payload.body.ns0#SubtractResponse.ns0#SubtractResult} 
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+				<logger level="INFO" doc:name="Copy_of_Copy_of_Logger" doc:id="070c6803-3c21-46e5-bc08-ed30a86ce18e" message="#[payload]" />
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="86231799-7c23-4ce8-bbbf-7c8aaf7539e9">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+flatten(payload...result)
+// ... represent pattern]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="c8c1d9a6-66cf-4c9f-9385-d7afcd2c5269" message="#[payload]" />
+	</flow>
+	<flow name="soapCallWithChoice"
+		doc:id="6f9cc131-b2a5-44f0-8e57-bf582fc1c612">
+		<http:listener doc:name="Listener"
+			doc:id="d9c766b0-ad0f-4dc2-bc49-0ab06f0845d9" path="/soap/{op}"
+			config-ref="HTTP_Listener_config" allowedMethods="GET"/>
+		<choice doc:name="Choice"
+			doc:id="ae169378-db57-49a9-8cfb-edec24270724">
+			<when expression='#[attributes.uriParams.op=="add"]'>
+				<ee:transform doc:name="Transform Message"
+					doc:id="6e42f3d7-2297-48de-9f53-42db900f8a6b">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Add: {
+		ns0#intA: (attributes.queryParams.num1 default 0) as Number,
+		ns0#intB: (attributes.queryParams.num2 default 0) as Number
+	}
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<wsc:consume doc:name="Consume"
+					doc:id="ba952a90-ae9a-4cd2-bed9-694039238662"
+					config-ref="Web_Service_Consumer_Config" operation="Add" />
+				<ee:transform doc:name="Transform Message"
+					doc:id="ec5ef03e-030f-45d0-a44f-2ed41684d650">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"result":payload.body.ns0#AddResponse.ns0#AddResult 
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<logger level="INFO" doc:name="Logger"
+					doc:id="f7455f79-e650-4196-a637-e69f634a0690" message="#[payload]" />
+			</when>
+			<when expression='attributes.uriParams.op=="sub"'>
+				<ee:transform doc:name="Copy_of_Transform Message" doc:id="ba4c6f83-8f9e-4973-bbcc-a4b8b8c2be91">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0
+output application/xml
+ns ns0 http://tempuri.org/
+---
+{
+	ns0#Subtract: {
+		ns0#intA: (attributes.queryParams.num1 default 0) as Number,
+		ns0#intB: (attributes.queryParams.num2 default 0) as Number
+	}
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+				<wsc:consume operation="Subtract" doc:name="Copy_of_Consume" doc:id="ef24fdfb-5a1a-4bbc-b865-de6d3848ffba" config-ref="Web_Service_Consumer_Config" />
+				<ee:transform doc:name="Copy_of_Transform Message" doc:id="81f55b05-10ef-445a-9f94-6ae30410310c">
+							<ee:message>
+								<ee:set-payload><![CDATA[%dw 2.0ns ns0 http://tempuri.org/
+
+output application/json
+---
+{
+	"result":payload.body.ns0#SubtractResponse.ns0#SubtractResult 
+}]]></ee:set-payload>
+							</ee:message>
+						</ee:transform>
+				<logger level="INFO" doc:name="Copy_of_Logger" doc:id="7f93f69a-2bc0-4f77-8063-d7d98de13236" message="#[payload]" />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="e59023eb-80e7-45f7-883f-318e98518673" message='"Default choice option execuated ====================================="'/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

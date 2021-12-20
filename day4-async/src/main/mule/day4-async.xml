@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="d30dd10f-dc46-4b15-909c-daefa8cb8541" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="day4-asyncFlow" doc:id="7dedc354-b0b7-4327-9614-d2c2885f1823" >
+		<http:listener doc:name="Listener" doc:id="869cbdd9-80c0-4a9d-b8cf-b55fd46097e2" path="/async" config-ref="HTTP_Listener_config"/>
+		<ee:transform doc:name="Transform Message" doc:id="88a347cd-1eab-4465-9f7a-9a66acff3f96" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	result:(attributes.queryParams.num1 default 0) as Number + 
+	(attributes.queryParams.num2 default 0) as Number
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<async doc:name="Async" doc:id="04bca087-2eb9-4720-80d0-a71692088f09" >
+			<ee:transform doc:name="Transform Message" doc:id="91d7e1cb-4029-4b03-8411-8c6151bd7911" >
+				<ee:message >
+					<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	
+	resultSqure:payload.result as Number/ 2
+}]]></ee:set-payload>
+				</ee:message>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="5991b073-caf0-4585-860a-b9cbf6e1207f" message='#[%dw 2.0&#10;output application/json&#10;---&#10;	"result/2 of result (async) log = " ++ payload.resultSqure]'/>
+		</async>
+		<logger level="INFO" doc:name="Logger" doc:id="1ba966f7-b516-48bc-9234-58a0cf5acdc9" message='#["mult result (main) log = " ++ payload.result]'/>
+	</flow>
+</mule>

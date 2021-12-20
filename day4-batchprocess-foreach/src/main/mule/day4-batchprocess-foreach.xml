@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="fda8c74d-9320-43fa-ba0d-02814fcfb91c" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="3a375acd-1d18-4347-a9f8-6a8caea4919e" >
+		<http:request-connection protocol="HTTPS" host="reqres.in" />
+	</http:request-config>
+	<flow name="day4-batchprocess-foreachFlow" doc:id="c0b43ae2-a39f-4e36-9821-d4ce06da9722" >
+		<http:listener doc:name="Listener" doc:id="47d4b4db-1850-4b79-9bf2-92fcf42d6e15" path="/batchforeach" config-ref="HTTP_Listener_config">
+		</http:listener>
+		<http:request method="GET" doc:name="Request" doc:id="555b98ce-94e7-4cba-bf66-9a0ea4196e1c" config-ref="HTTP_Request_configuration" path="/api/users?page=2"/>
+		<ee:transform doc:name="Transform Message" doc:id="bccbb5cf-c0d2-40e4-bcfd-54715c7a8b80" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload.data]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="b2dc00ee-ee47-4965-b691-7b1558267a93" variableName="dataArray"/>
+		<set-variable value="#[[]]" doc:name="Copy_of_Set Variable" doc:id="f349cdd9-fd21-44e4-945d-f6c908330e13" variableName="idEmailStr" />
+		<foreach doc:name="For Each" doc:id="c1c68ae4-de60-47c7-8c09-3d4a41bac611" collection="#[vars.dataArray]" rootMessageVariableName="currentItems">
+			<ee:transform doc:name="Transform Message" doc:id="3d0ec0a0-fb21-4ed1-b923-45042d8a96a5" >
+				<ee:message >
+				</ee:message>
+				<ee:variables >
+					<ee:set-variable variableName="idEmailStr" ><![CDATA[%dw 2.0
+output application/java
+---
+	payload.id ++ " email : " ++ payload.email
+]]></ee:set-variable>
+				</ee:variables>
+			</ee:transform>
+			<logger level="INFO" doc:name="Logger" doc:id="f5ff38f3-4982-4f6b-85fb-ecdb495faa6a" message='#[vars.idEmailStr]'/>
+		</foreach>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;	vars.idEmailStr]" doc:name="Set Payload" doc:id="84fb93eb-0509-4b27-94c0-3d9c6a5c749e" />
+	</flow>
+</mule>

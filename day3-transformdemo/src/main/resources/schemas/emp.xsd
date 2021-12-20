@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.example.org/emp" xmlns:tns="http://www.example.org/emp" elementFormDefault="qualified">
+<complexType name="skilltype">
+    	<sequence>
+    		<element name="title" type="string"></element>
+    		<element name="category" type="string"></element>
+    		<element name="proficiency">
+    			<simpleType>
+    				<restriction base="int">
+    					<minInclusive value="1"></minInclusive>
+    					<maxInclusive value="4"></maxInclusive>
+    				</restriction>
+    			</simpleType>
+    		</element>
+    	</sequence>
+    </complexType>
+
+    <complexType name="employeetype">
+    	<sequence>
+    		<element name="name" type="string"></element>
+    		<element name="role" type="string"></element>
+    		<element name="skills" type="tns:skilllisttype"></element>
+    	</sequence>
+    	<attribute name="empid" type="string"></attribute>
+    </complexType>
+
+
+    <complexType name="skilllisttype">
+    	<sequence>
+    		<element name="skill" type="tns:skilltype" maxOccurs="unbounded" minOccurs="1"></element>
+    	</sequence>
+    </complexType>
+
+    <element name="employee" type="tns:employeetype"></element>
+</schema>

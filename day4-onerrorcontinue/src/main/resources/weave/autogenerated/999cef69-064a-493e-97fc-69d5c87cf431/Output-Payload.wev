@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_999cef69_064a_493e_97fc_69d5c87cf431_Output_Payload = {| DivResult: Number |}
+

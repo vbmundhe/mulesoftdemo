@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="953582ee-a75b-4e3c-ba7d-f7be1492ec28" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="tiger" database="muletraining"/>
+	</db:config>
+	<configuration-properties doc:name="Configuration properties" doc:id="afb051b5-913e-4d8c-81ea-f83d441b7bd3" file="vbmconfig.yaml" />
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="102d43ab-dca8-4c83-a5e7-c47c572bb05a" >
+		<http:listener-connection host="0.0.0.0" port="${http.port}" />
+	</http:listener-config>
+	<flow name="DataBaseEx-flow" doc:id="82f79727-1660-4b93-b40e-696556b22a0a" >
+		<http:listener doc:name="Listener" doc:id="2aeacb2e-c8fb-4e8e-a7cd-f453a9f10027" config-ref="HTTP_Listener_config" path="/dbop"/>
+		<db:select doc:name="Select" doc:id="86bebf94-0b28-45d4-8cc4-cd33529887be" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from customer;]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="22780d2b-1913-4ef0-9b03-ff17ec7f4098" message="#[payload]"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;&#10;payload]" doc:name="Set Payload" doc:id="d90a9264-e597-4df8-ae83-6befb0dc4a5b" />
+	</flow>
+	<flow name="Fileop-writeToFile" doc:id="3349c3ce-3006-41f4-9862-67d51fde50c0" >
+		<http:listener doc:name="Listener" doc:id="84f42483-03db-4528-9005-788e6c5a55a8" config-ref="HTTP_Listener_config" path="/filewrite"/>
+		<logger level="INFO" doc:name="Logger" doc:id="8dab0a6b-f648-424a-9738-16a2f9afa967" message="#[payload]"/>
+		<file:write doc:name="Write" doc:id="fef03dd4-8a0f-4a41-9b47-e797e39fa4e5" path="E:\Study\mulesoft\Acc-Mule-training\resources\resources\vbmFile1.json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="4caafa87-d291-4725-9637-13cfa9ee65e7" message='"File Write operation is completed !!"'/>
+	</flow>
+	<flow name="firstproj-FileReadConvertXmlToJson" doc:id="a1c225a4-8f0c-4c16-91bb-7c9f31ab542e" >
+		<http:listener doc:name="FileConnectorListner" doc:id="16e2f7a5-80f3-4a1a-bb06-30f0ca1a6e92" config-ref="HTTP_Listener_config" path="/files" allowedMethods="GET"/>
+		<file:read doc:name="Read" doc:id="b8ef0197-63f4-44e4-b62f-4cd0c67df5e8" path="E:\Study\mulesoft\Acc-Mule-training\resources\resources\emp.xml"/>
+		<logger level="INFO" doc:name="Logger" doc:id="ba614384-ec52-4ba0-a42a-e01d18594586" message="#['initial Log =======']" />
+		<logger level="INFO" doc:name="Logger" doc:id="aad8c53e-42cc-4c01-a180-c56456d9a4c2" message="#[payload]"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="a0df732a-bc19-49bd-84e7-2d968bbd861c" />
+	</flow>
+	<flow name="firstprojFlow" doc:id="9f9be45f-b870-4193-9b23-da8b1f460dd0" >
+		<http:listener doc:name="Listener" doc:id="e512bd48-3a6e-4ac3-99b0-56333d4a6e7b" path="/hello/{empCode}" outputMimeType="application/json" allowedMethods="POST" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="f673f88d-fcc0-4e7b-9e95-9d5d9118ea69" message='#[attributes.method]'/>
+		<set-payload value="#[&quot;Employee code &quot;++ attributes.uriParams.empCode as String ++'I am name: ' ++ attributes.queryParams.name as String ++ ' from location:'&#10; ++ attributes.queryParams.location as String]" doc:name="Set Payload" doc:id="09c0b663-130e-419f-b0b0-946faf40e5e5" mimeType="application/json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="8d2da03b-a55a-4fa6-8331-3134657df5dc" message='#["remoteAddress" ++ attributes.remoteAddress]'/>
+	</flow>
+</mule>

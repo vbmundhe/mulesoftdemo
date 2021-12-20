@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="efbe9a37-851b-430a-beb3-2fa5599d04f5" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="privateFlowforErrorOnContinue" doc:id="f2ec8613-288f-4495-b1dd-bc1d0845502e" >
+		<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	DivResult : 12/0&#10;}]" doc:name="Set Payload" doc:id="12ae4273-a039-4950-a8ae-a7fd1119572e" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="0cf6df00-4f46-4941-80c6-c2a6936fa8da" >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	DivResult : "canNotDo the division by 0",&#10;	location: "day4-onerrorcontinueFlow --&gt; PRIVATE FLOW -&gt; error on propogate "&#10;}]' doc:name="Copy_of_Set Payload" doc:id="0cef2127-2cca-4bea-93bb-66725ed9477a" />
+				<logger level="INFO" doc:name="Copy_of_Logger" doc:id="833fecfb-e98c-4f8c-b1ca-bed4077cc2b7" message='"day4-onerrorcontinueFlow --&gt; PRIVATE FLOW -&gt; error on propogate"' />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<sub-flow name="subFlow" doc:id="999cef69-064a-493e-97fc-69d5c87cf431" >
+		<set-payload value="#[%dw 2.0&#10;output application/java&#10;---&#10;{&#10;	DivResult : 12/0&#10;}]" doc:name="Copy_of_Set Payload" doc:id="5d76c108-d000-470c-aa30-f1c7fc462ee1" />
+	</sub-flow>
+	<flow name="day4-on-error-propogate" doc:id="12784f35-5b48-40fc-9efc-062ec082704c" >
+		<http:listener doc:name="Listener" doc:id="04feafdf-557d-4b70-b74f-8d323e65922d" config-ref="HTTP_Listener_config" path="/on-error-propogate"/>
+		<flow-ref doc:name="Flow Reference" doc:id="2ab312a2-e1be-42c5-a82a-59824ee9d8b6" name="subFlow" />
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="dcd703f9-8741-4be7-bf16-f1262089bf28" message="#[payload]" />
+		<logger level="INFO" doc:name="Copy_of_Copy_of_Logger" doc:id="8c28d804-de1e-4426-89a4-3fe9fc124ac0" message='#[" Main flow logger"]' />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="b0d557ac-535a-4c1b-a20b-eec89931ddc3" >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	DivResult : "canNotDo the division by 0"&#10;}]' doc:name="Copy_of_Set Payload" doc:id="abe1588a-66eb-4527-b292-2b10259ac72b" />
+				<logger level="INFO" doc:name="Copy_of_Logger" doc:id="dfb294cf-f141-4466-a9ae-6a77849ef2e8" message="#[payload]" />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="day4-onerrorcontinueFlow" doc:id="eba65bb5-0fee-4306-b8f8-3b0707618815" >
+		<http:listener doc:name="Listener" doc:id="5e43659f-6412-4c9d-8f49-e00a9a49eac0" path="/onerror" config-ref="HTTP_Listener_config"/>
+		<flow-ref doc:name="Flow Reference" doc:id="85f9560b-5b41-4182-b2af-2297fece0785" name="privateFlowforErrorOnContinue" />
+		<logger level="INFO" doc:name="Logger" doc:id="016932b5-06e4-42db-bfb5-cbb8c2941289" message="#[payload]"/>
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="8c129ac5-7413-4ec4-aab4-22a9980f12b7" message='#[" Main flow logger"]' />
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="19e60c22-8a61-4a40-8166-514f31717813" >
+				<set-payload value='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	DivResult : "canNotDo the division by 0",&#10;	location: "day4-onerrorcontinueFlow --&gt; onError Continue flow"&#10;}]' doc:name="Set Payload" doc:id="8075fafb-5428-4b48-b9b8-1892521100e9" />
+				<logger level="INFO" doc:name="Logger" doc:id="7225691f-894f-44bf-a6d5-2bdff9fe43dd" message='#[payload]'/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

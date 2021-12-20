@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="2c96bac3-ad63-4710-aa5e-90d7c65711f2" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="day4-raiseerrorFlow" doc:id="04ce51db-9537-4aa9-a283-bba3ac340f56" >
+		<http:listener doc:name="Listener" doc:id="47d43c9f-2dce-4a46-9aee-fcc327b44cdd" config-ref="HTTP_Listener_config" path="/raise-error">
+			<http:error-response reasonPhrase="#[vars.statusDes]" statusCode="#[vars.httpStatus]">
+				<http:body ><![CDATA[#[output text/json 
+--- 
+error]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<choice doc:name="Choice" doc:id="f538b041-7828-458d-af1c-36725d885403" >
+			<when expression='#[payload.accountId == "1234"]'>
+				<try doc:name="Try" doc:id="f0d7aed6-e867-4f01-886d-76036a4996b0" >
+					<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;	DivResult : 12/0&#10;}]" doc:name="Set Payload" doc:id="12f96cfd-e8b7-42b1-a89d-dbcb0ca24366" />
+					<logger level="INFO" doc:name="Logger" doc:id="02f24940-f3a7-4699-b93a-b15df5579551" />
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="dab980d2-008d-4795-a0c2-2f462c1286ae" >
+							<ee:transform doc:name="Transform Message" doc:id="55a237bb-71b3-4e90-884a-57fc0b3e9962" >
+								<ee:message >
+									<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status":400,
+	"des":"customMsg"
+}]]></ee:set-payload>
+								</ee:message>
+								<ee:variables >
+									<ee:set-variable variableName="httpStatus" ><![CDATA[409]]></ee:set-variable>
+									<ee:set-variable variableName="statusDes" ><![CDATA["customStatusMsg"]]></ee:set-variable>
+								</ee:variables>
+							</ee:transform>
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="07ad529a-a290-4710-aad0-586c162154e0" type="ACCOUNT:INVALID_REQUEST" description="ERROR description"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>

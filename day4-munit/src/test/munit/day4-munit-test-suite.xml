@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="day4-munit-test-suite.xml" />
+	<munit:test name="day4-munit-test-suite-day4-munitFlowTest" doc:id="7a9aaf2c-5f78-4983-b638-ed4b52aa978b" description="Test">
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock when" doc:id="cecc927d-62ba-486b-b583-19d848085e79" processor="http:listener">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="Listener" attributeName="doc:name" />
+					<munit-tools:with-attribute whereValue="eeb8be51-abed-46cd-9cb0-0d8b749f5ebc" attributeName="doc:id" />
+					<munit-tools:with-attribute whereValue="HTTP_Listener_config" attributeName="config-ref" />
+					<munit-tools:with-attribute whereValue="/munit" attributeName="path" />
+				</munit-tools:with-attributes>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Event" doc:id="bfa14c7e-dadd-4b2b-aa67-042b879491f3" >
+				<munit:payload value='#{["choice":"first"}]' />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to day4-munitFlow" doc:id="891ff35c-511a-4171-8956-2c9a4919b142" name="day4-munitFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:verify-call doc:name="Verify call" doc:id="44792c58-2555-488f-ace9-9c9a7ad40394" processor="when">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue='#[payload.choice == "first"]' attributeName="expression" />
+				</munit-tools:with-attributes>
+			</munit-tools:verify-call>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>

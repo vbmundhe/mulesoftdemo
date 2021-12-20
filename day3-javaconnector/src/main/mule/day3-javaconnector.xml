@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:java="http://www.mulesoft.org/schema/mule/java"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/java http://www.mulesoft.org/schema/mule/java/current/mule-java.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9d38e6d6-beb3-4261-8576-13e885efe2ce" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<flow name="day3-javaconnectorFlow-Statc" doc:id="9d425cd9-d244-4a97-992d-13f78fe7501f" >
+		<http:listener doc:name="Listener" doc:id="03936ebe-1ab7-48bd-941b-ea780c7bcf4c" path="/javaconnector" config-ref="HTTP_Listener_config"/>
+		<java:invoke-static doc:name="Invoke static" doc:id="76d9cc6c-1294-4a76-9970-a8c1d4e23675" class="javademo.MyCalculator" method="add(int,int)">
+			<java:args ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	a: ( attributes.queryParams.num1 default 0) as Number,
+	b:  ( attributes.queryParams.num2 default 0) as Number
+}]]]></java:args>
+		</java:invoke-static>
+		<logger level="INFO" doc:name="Logger" doc:id="5d646db6-66bc-4756-9cd2-d039ec7829fd" message="#[payload]"/>
+		<ee:transform doc:name="Transform Message" doc:id="9c099f08-9200-4609-b243-8e252f61c8d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"invokeJavaResult":payload
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="day3-javaconnectorFlow-instance" doc:id="73455068-36e5-436e-8508-92168a8f79e8" >
+		<http:listener doc:name="Copy_of_Listener" doc:id="533ff9d8-3306-4ee4-9822-60e093c9f190" config-ref="HTTP_Listener_config" path="/javaconnectormult" />
+		<java:new doc:name="NewIns" doc:id="bc0d56b8-981e-4879-824b-f075f36ba1fe" class="javademo.MyCalculator" constructor="MyCalculator(int,int)" target="myCalObj">
+			<java:args ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+	a: ( attributes.queryParams.num1 default 0) as Number,
+	b:  ( attributes.queryParams.num2 default 0) as Number
+}]]]></java:args>
+		</java:new>
+		<java:invoke doc:name="InvokeMultiplication" doc:id="f01719d5-63e3-4d75-82a9-15591304475b" class="javademo.MyCalculator" method="multiply()" instance="#[vars.myCalObj]" target="multResult"/>
+		<logger level="INFO" doc:name="Copy_of_Logger" doc:id="ef02f6a9-9172-473a-8857-2ead875f04a9" message="#[payload]" />
+		<ee:transform doc:name="Copy_of_Transform Message" doc:id="a0d0548e-3f5c-40f0-a4a6-a8d4cbcd876a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"invokeJavaMultiplication":payload,
+	"multiplcationResult":vars.multResult
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

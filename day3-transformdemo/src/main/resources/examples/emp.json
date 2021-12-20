@@ -1,0 +1,22 @@
+{
+  "empid": "1001",
+  "name": "Nilesh",
+  "role": "Associate Manager",
+  "skills": [
+    {
+      "title": "DevOps",
+      "proficiency": 3,
+      "category": "industry"
+    },
+    {
+      "title": "Agile",
+      "proficiency": 4,
+      "category": "industry"
+    },
+    {
+      "title": "Java",
+      "proficiency": 5,
+      "category": "technology"
+    }
+  ]
+}

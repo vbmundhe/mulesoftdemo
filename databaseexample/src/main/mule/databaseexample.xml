@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="50f916d9-c26d-4f6c-aff7-d7a8e8416f51" >
+		<http:listener-connection host="localhost" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="ab118da4-d4e7-492a-9bb3-7753054fe3d5" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="tiger" database="muletraining" />
+	</db:config>
+	<flow name="databaseexampleFlow" doc:id="4713b2bc-c5a2-426e-b61c-5f0e8dc1e033" >
+		<http:listener doc:name="Listener" doc:id="4dc7e4a4-e7be-417c-8e9a-90053d48087b" path="/database" config-ref="HTTP_Listener_config"/>
+		<db:select doc:name="Select" doc:id="54367708-7ee7-4342-ba5d-7c3cf9ff857f" config-ref="Database_Config">
+			<db:sql ><![CDATA[Select * from customer where custid=:custid;]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{'custid' : attributes.queryParams.id}]]]></db:input-parameters>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="1e346d4b-c644-415c-9213-fd3efac60234" message="#[payload]"/>
+		<set-payload value="#[%dw 2.0&#10;output application/json&#10;---&#10;payload]" doc:name="Set Payload" doc:id="53f8f6f5-6c9f-4658-a8d0-3205a1ebc437" />
+	</flow>
+</mule>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="f5bd2897-b4e8-4f9c-8cd7-b68540c6c79b" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="oneByOneValidateOn-privateFlow" doc:id="ce54dfca-6f4a-4025-84bd-88bcdd3ebcf0" >
+		<validation:is-email doc:name="Is email" doc:id="c16b9e05-27d3-4012-b3ec-d456ecfb5d2e" email="#[attributes.queryParams.email]" />
+		<validation:matches-regex doc:name="Matches regex" doc:id="31c0bbf6-3a7a-42ec-8fab-036c686dbcc6" value="#[attributes.queryParams.pan]" regex="^[A-Z]{5}[0-9]{4}[A-Z]{1}$" />
+		<validation:validate-size doc:name="Validate size" doc:id="8986c156-d474-48e5-9516-70c0bf738b31" value="#[attributes.queryParams.name]" min="3" />
+	</flow>
+	<sub-flow name="ALLValidationFlow" doc:id="199d1dfb-2064-4801-8e5c-998af1a3fce8" >
+		<validation:all doc:name="All" doc:id="b6c49495-b320-4d61-b34a-b70853d6e806">
+			<validation:is-email doc:name="Copy_of_Is email" doc:id="338ae1bd-2385-41cb-8212-b623145e7cb2" email="#[attributes.queryParams.email]" />
+			<validation:matches-regex doc:name="Copy_of_Matches regex" doc:id="1ead15cf-7ec9-4638-8374-b9ba2a01a63b" value="#[attributes.queryParams.pan]" regex="^[A-Z]{5}[0-9]{4}[A-Z]{1}$" />
+			<validation:validate-size doc:name="Copy_of_Validate size" doc:id="055e7074-e0bf-4132-8e4b-060304642748" value="#[attributes.queryParams.name]" min="3" />
+		</validation:all>
+	</sub-flow>
+	<sub-flow name="AnyValidationFlow" doc:id="a90a86f7-89a8-459a-955c-43aaf48f67c4" >
+		<validation:any doc:name="Any" doc:id="b4d2aa29-943c-4fd4-b196-4cf764d6ae22" >
+			<validation:is-email doc:name="Copy_of_Copy_of_Is email" doc:id="23d7f8c8-f799-4b24-bb2c-1dad7f7b42f0" email="#[attributes.queryParams.email]" />
+			<validation:matches-regex doc:name="Copy_of_Copy_of_Matches regex" doc:id="9a19932c-a5a5-4b87-b0dc-cb0c42486ac9" value="#[attributes.queryParams.pan]" regex="^[A-Z]{5}[0-9]{4}[A-Z]{1}$" />
+			<validation:validate-size doc:name="Copy_of_Copy_of_Validate size" doc:id="9d86b59e-3d83-4811-ae71-bf3afb85baee" value="#[attributes.queryParams.name]" min="3" />
+		</validation:any>
+	</sub-flow>
+	<flow name="day4-validationFlow1" doc:id="520351ec-f7cd-4156-aa60-68233fb76e06" >
+		<http:listener doc:name="Listener" doc:id="3a9e0e08-379d-4b2a-8f15-4d02630ef499" config-ref="HTTP_Listener_config" path="/subflow"/>
+		<choice doc:name="Choice" doc:id="68ecdcda-1916-48a4-bde5-ca43fed10718" >
+			<when expression='#[attributes.queryParams.flowName == "any"]'>
+				<logger level="INFO" doc:name="Logger" doc:id="8efe65df-b78f-48fa-b2d8-b50e07b52e16" />
+				<flow-ref doc:name="Flow Reference" doc:id="37ff20c4-874a-4a46-b45d-26fcb4768e67" name="day4-validate-any"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="0f9508a1-3e09-410f-a2a1-3408db5bb3c0" />
+				<flow-ref doc:name="Flow Reference" doc:id="c0c56d5e-4ee8-4273-820e-2c47a19df009" name="AnyValidationFlow"/>
+			</otherwise>
+		</choice>
+	</flow>
+	<flow name="day4-validate-any" doc:id="bece3c4b-d9e3-42dd-aea1-9ac8570469bc" >
+		<http:listener doc:name="Listener" doc:id="4b619c3c-98ee-401c-a3c2-1e6bd3e6069f" config-ref="HTTP_Listener_config" path="/validate-any"/>
+		<flow-ref doc:name="Flow Reference" doc:id="4b5ef684-99a9-47a6-80a3-88cf6b83c922" name="AnyValidationFlow" />
+		<set-payload value='#["success !! one of the condition got success"]' doc:name="Copy_of_Copy_of_Set Payload" doc:id="b3f0f91e-ed1f-4358-bc63-2ad0719a7daa" />
+	</flow>
+	<flow name="day4-validate-all" doc:id="774c713c-0ded-44e0-a495-ce9a2820ff5d" >
+		<http:listener doc:name="Listener" doc:id="839eccb1-a634-4376-b82d-0d9be5baafb8" config-ref="HTTP_Listener_config" path="validate-all"/>
+		<flow-ref doc:name="Flow Reference" doc:id="ad0a022f-5f20-4a44-bb0f-ac5c5cafcfca" name="ALLValidationFlow" />
+		<set-payload value='#["success !! ALL of the conditions got success"]' doc:name="Copy_of_Set Payload" doc:id="fadccf88-9f51-43a9-b5df-6a91c6e72597" />
+	</flow>
+	<flow name="day4-validationFlow" doc:id="4afcb215-6ac0-4910-aff8-52a947f8dfaf" >
+		<http:listener doc:name="Listener" doc:id="2d6c8633-21c0-4c5d-b65b-6c563fb0872d" path="/validation" config-ref="HTTP_Listener_config"/>
+		<validation:validate-size doc:name="Validate size" doc:id="8ef61492-724e-4a6f-aa24-be7f28e913dd" value="#[attributes.queryParams.name]" min="3"/>
+		<flow-ref doc:name="Flow Reference" doc:id="c0d95993-2753-4800-a18a-a7a205344b39" name="oneByOneValidateOn-privateFlow" />
+		<set-payload value='#["success !!"]' doc:name="Set Payload" doc:id="dec23156-f74b-4fb7-afe3-12805ef1d531" />
+	</flow>
+</mule>

@@ -1,0 +1,34 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<types:mule xmlns:types="http://www.mulesoft.org/schema/mule/types">
+  <types:catalog>
+    <types:type name="test" format="xml">
+      <types:shape format="xml-schema" element="{http://www.example.org/emp}employee" location="schemas/emp.xsd"/>
+    </types:type>
+    <types:type name="xmlTyoe" format="xml">
+      <types:example format="xml" element="{http://www.example.org/emp}employee" location="examples/emp.xml"/>
+    </types:type>
+  </types:catalog>
+  <types:enrichment select="#361d04b5-14ce-488d-87d4-449941ff6e09">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="xmlTyoe"/>
+        </types:message>
+      </types:input-event>
+      <types:output-event>
+        <types:message>
+          <types:payload type="xmlTyoe"/>
+        </types:message>
+      </types:output-event>
+    </types:processor-declaration>
+  </types:enrichment>
+  <types:enrichment select="#e2df2696-80d2-4cb7-ba94-d418bb90d463">
+    <types:processor-declaration>
+      <types:input-event>
+        <types:message>
+          <types:payload type="xmlTyoe"/>
+        </types:message>
+      </types:input-event>
+    </types:processor-declaration>
+  </types:enrichment>
+</types:mule>

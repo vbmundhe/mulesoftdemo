@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="9d8e99d8-50b8-452a-b8e4-8866fff5d143" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="e085fe7f-9e07-43fe-9bd0-44c9ca317a60" file="myconfig.yaml" />
+	<configuration-properties doc:name="Configuration properties" doc:id="83479862-144e-4c50-ad20-d74fc3705d98" file="myconfig2.yaml" />
+	<flow name="DateOperation" doc:id="3d9f1012-1138-4811-b45b-2b31989d0921" >
+		<ee:transform doc:name="Transform Message" doc:id="23b30b31-50c1-4e03-86da-067110e3bc1c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+type ipDate = Date{format:'dd-MM-yy'}
+type opDate = Date{format:'dd-MMM-yyyy'}
+var x=10
+var add = (n1,n2)-> n1+n2
+fun dateStrComapare(dateStr)=do{
+	if(dateStr=="15-12-21")
+		"date match 15-12-21"
+	else "not matched"
+		
+}
+---
+{
+	modifedDate:payload as Date{format:'dd-MM-yy'} as Date{format:'dd-MMM-yyyy'},
+	usingFunctionalResule:add(2,5),
+	dateStrComapareResult:dateStrComapare(payload),
+	configUsername:p("username"),
+	configUsername:p("connection")
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="day3-transformdemoFlow" doc:id="dd7b8df7-e3a1-4265-be51-1b59b0dc49dc" >
+		<ee:transform doc:name="Transform Message" doc:id="e2df2696-80d2-4cb7-ba94-d418bb90d463" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	name:payload.employee.name,	empRole:payload.employee.role,		empSkilsAtIndex1:(payload.employee.skills.*skill map {		index:$$,		empTitle:$.title	})[1]	,	empSkilsAtIndex0To1:(payload.employee.skills.*skill map {		index:$$,		empTitle:$.title	})[0-1],		employeeskills: (payload.employee.skills.*skill map {
+		srNo: $$,
+		skilltitle: lower($.title),
+		category: $.category,
+		proficiency: 			if ( $.proficiency >= 4 ) "Expert"			else if ( $.proficiency >= 3 ) "Trained"			else "Nottrained"
+	}) filter($.proficiency == "Expert"),	groupByCat: payload.employee.skills.*skill groupBy (item, itemIndex) -> item,		groupByCat: payload.employee.skills.*skill groupBy (item, itemIndex) -> item
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

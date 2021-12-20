@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="0268cce4-d2d8-4e7b-a0af-a49500821b7f" >
+		<http:listener-connection host="localhost" port="8085" />
+	</http:listener-config>
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="5b4e28f6-dfae-4313-a2c9-e84ab65be9aa" >
+		<http:request-connection host="jsonplaceholder.typicode.com" />
+	</http:request-config>
+	<flow name="day2-restdemoFlow" doc:id="1de9e473-ef6b-49f8-912a-1aac499d9819" >
+		<http:listener doc:name="Listener" doc:id="01249944-456d-4e89-bfb9-62d75e9436cf" path="/users/{userId}" config-ref="HTTP_Listener_config"/>
+		<logger level="INFO" doc:name="Logger" doc:id="a105b37b-1043-4bf5-afdd-03d19e86a24c" message="#[payload]"/>
+		<http:request method="GET" doc:name="Request" doc:id="1f3dedbe-00ff-4a2f-9ef6-0a23fc9fee26" config-ref="HTTP_Request_configuration1" path="/users/{id}">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	hed : adsfad
+}]]]></http:headers>
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	id : attributes.uriParams.userId
+}]]]></http:uri-params>
+		</http:request>
+	</flow>
+</mule>

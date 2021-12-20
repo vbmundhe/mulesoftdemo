@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<tns:employee empid="1001" xmlns:tns="http://www.example.org/emp" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.example.org/emp emp.xsd ">
+  <tns:name>Nilesh</tns:name>
+  <tns:role>Associate Manager</tns:role>
+  <tns:skills>
+    <tns:skill>
+      <tns:title>DevOps</tns:title>
+      <tns:category>industry</tns:category>
+      <tns:proficiency>3</tns:proficiency>
+    </tns:skill>
+    <tns:skill>
+      <tns:title>Agile</tns:title>
+      <tns:category>industry</tns:category>
+      <tns:proficiency>4</tns:proficiency>
+    </tns:skill>
+    <tns:skill>
+      <tns:title>Java</tns:title>
+      <tns:category>technology</tns:category>
+      <tns:proficiency>4</tns:proficiency>
+    </tns:skill>
+  </tns:skills>
+</tns:employee>
